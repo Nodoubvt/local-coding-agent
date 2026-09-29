@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "qai"
+version = "0.1.0"
+description = "A tiny terminal coding agent that runs Qwen2.5-Coder 1.5B locally via llama.cpp"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Nodoubvt" }]
+requires-python = ">=3.10"
+keywords = ["llm", "cli", "agent", "llama.cpp", "qwen", "local-llm", "coding-assistant"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development :: Code Generators",
+]
+dependencies = [
+  "typer>=0.12",
+  "rich>=13.7",
+  "prompt-toolkit>=3.0.43",
+  "platformdirs>=4.2",
+  "huggingface-hub>=0.23",
+  "pathspec>=0.12",]
+
+[project.optional-dependencies]
+local = ["llama-cpp-python>=0.3.2"]
+dev = [
+  "pytest>=8.2",
+  "ruff>=0.5",
+  "mypy>=1.11",
+]
+
+[project.scripts]
+qai = "qai.cli:run"
+
+[project.urls]
+Homepage = "https://github.com/Nodoubvt/local-coding-agent"
+Repository = "https://github.com/Nodoubvt/local-coding-agent"
+Issues = "https://github.com/Nodoubvt/local-coding-agent/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/qai"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_ignores = true
+ignore_missing_imports = true

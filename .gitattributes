@@ -1,0 +1,13 @@
+# Normalize to LF in the repository; check out per platform.
+* text=auto eol=lf
+
+*.py text diff=python
+*.md text diff=markdown
+*.toml text
+*.yml text
+
+# Keep model weights and binaries untouched.
+*.gguf binary
+*.safetensors binary
+*.png binary
+*.jpg binary
