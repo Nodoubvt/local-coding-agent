@@ -1,23 +1,23 @@
 name: publish
 
-# Publish to PyPI on a version tag, plus a dry run on every push to main.
+# Build on every push to main; publish only on a v* tag.
 on:
   push:
     branches: [main]
     tags: ["v*"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  publish:
-    name: Build and publish to PyPI
+  build:
+    name: Build distributions
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/qai-cli
     permissions:
-      # Required for OIDC trusted publishing. No API token is stored anywhere.
-      id-token: write
       contents: read
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,40 +27,72 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Read version from pyproject
+        id: meta
+        run: |
+          VERSION=$(python -c "import tomllib,pathlib;print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Verify tag matches pyproject version
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           TAG="${GITHUB_REF_NAME#v}"
-          VERSION=$(python -c "import tomllib,pathlib;print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
-          if [ "$TAG" != "$VERSION" ]; then
-            echo "::error::tag $TAG does not match pyproject version $VERSION"
+          if [ "$TAG" != "${{ steps.meta.outputs.version }}" ]; then
+            echo "::error::tag $TAG does not match pyproject version ${{ steps.meta.outputs.version }}"
             exit 1
           fi
 
-      - name: Install build tooling
-        run: |
+      - run: |
           python -m pip install --upgrade pip
           pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
 
-      - name: Build sdist and wheel
-        run: python -m build
-
-      - name: Check metadata
-        run: twine check dist/*
-
-      - name: Test install of the built wheel
+      - name: Smoke test the wheel
         run: |
           pip install dist/*.whl
           qai --version
           qai --print-config
 
-      - name: Upload a release to GitHub
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+
+  github-release:
+    name: Attach assets to a GitHub release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      # Separate job so that write access is never present alongside the
+      # PyPI OIDC token.
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: softprops/action-gh-release@v2
         with:
           files: dist/*
           generate_release_notes: true
 
-      - name: Publish to PyPI
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: pypa/gh-action-pypi-publish@release/v1
+  pypi:
+    name: Publish to PyPI
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/qai-cli
+    permissions:
+      # OIDC trusted publishing. No API token exists anywhere.
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
