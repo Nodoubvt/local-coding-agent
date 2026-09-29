@@ -20,7 +20,8 @@ telemetry, no data leaving your laptop.
 It is deliberately small: about **1,700 lines** of readable Python you can finish
 in one sitting, built to be extended rather than depended on.
 
-> **CLI command:** `qai` · **Repository:** `local-coding-agent` · **License:** MIT
+> **CLI command:** `qai` · **PyPI package:** `qai-cli` · **Repository:**
+> `local-coding-agent` · **License:** MIT
 
 ```
 qai> add a docstring to every function in utils.py
@@ -72,20 +73,37 @@ This one assumes nothing:
 
 ## Install
 
+### Fastest — no install, no virtualenv
+
+```bash
+uvx qai-cli              # run it instantly
+```
+
+### Global install, still isolated
+
+```bash
+uv tool install qai-cli  # or: pipx install qai-cli
+qai "what does main() do?"
+```
+
+> **Local inference needs `llama-cpp-python`**, a compiled C++ extension. If you
+> have no C++ toolchain, use the prebuilt CPU wheel:
+>
+> ```bash
+> pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+> ```
+>
+> Then run `uvx --with llama-cpp-python qai-cli` to try it in one shot.
+
+### From source
+
 ```bash
 git clone https://github.com/Nodoubvt/local-coding-agent
 cd local-coding-agent
 
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install -e ".[local]"
-```
-
-`[local]` installs `llama-cpp-python`, which compiles a small C++ extension. If
-you have no C++ toolchain, take the prebuilt CPU wheel:
-
-```bash
-pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+pip install -e ".[local]"         # [local] adds llama-cpp-python
 ```
 
 Inspect resolved settings, or fetch weights ahead of time:
@@ -191,6 +209,19 @@ mypy src
 Tests run against a scripted fake backend, so nothing downloads 1 GB. Coverage
 includes sandbox escapes, the approval gate, tool-call pairing across trims, and
 a simulated 32k session that reads a 20k-line file fifteen times.
+
+## Releasing
+
+Push a `v*` tag. The workflow verifies the tag matches the `pyproject.toml`
+version, builds the sdist and wheel, checks metadata, smoke-tests the wheel, and
+publishes to PyPI via OIDC trusted publishing — no API token is stored in the
+repository.
+
+```bash
+# 1. bump version in pyproject.toml + CHANGELOG.md, commit
+# 2. tag and push
+git tag v0.1.0 && git push origin v0.1.0
+```
 
 ## License
 

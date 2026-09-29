@@ -3,21 +3,41 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "qai"
+name = "qai-cli"
 version = "0.1.0"
-description = "A tiny terminal coding agent that runs Qwen2.5-Coder 1.5B locally via llama.cpp"
+description = "Offline terminal coding agent. Runs Qwen2.5-Coder 1.5B locally via llama.cpp - no API key, no cloud, no telemetry."
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Nodoubvt" }]
 requires-python = ">=3.10"
-keywords = ["llm", "cli", "agent", "llama.cpp", "qwen", "local-llm", "coding-assistant"]
+keywords = [
+  "llm",
+  "cli",
+  "agent",
+  "coding-agent",
+  "llama.cpp",
+  "llama-cpp",
+  "gguf",
+  "qwen",
+  "local-llm",
+  "offline",
+  "privacy",
+  "coding-assistant",
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Software Development :: Code Generators",
+  "Topic :: Utilities",
+  "Typing :: Typed",
 ]
 dependencies = [
   "typer>=0.12",
@@ -25,7 +45,8 @@ dependencies = [
   "prompt-toolkit>=3.0.43",
   "platformdirs>=4.2",
   "huggingface-hub>=0.23",
-  "pathspec>=0.12",]
+  "pathspec>=0.12",
+]
 
 [project.optional-dependencies]
 local = ["llama-cpp-python>=0.3.2"]
@@ -33,6 +54,8 @@ dev = [
   "pytest>=8.2",
   "ruff>=0.5",
   "mypy>=1.11",
+  "build>=1.2",
+  "twine>=5.1",
 ]
 
 [project.scripts]
@@ -42,9 +65,13 @@ qai = "qai.cli:run"
 Homepage = "https://github.com/Nodoubvt/local-coding-agent"
 Repository = "https://github.com/Nodoubvt/local-coding-agent"
 Issues = "https://github.com/Nodoubvt/local-coding-agent/issues"
+Changelog = "https://github.com/Nodoubvt/local-coding-agent/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/qai"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/qai", "tests", "README.md", "LICENSE", "pyproject.toml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
