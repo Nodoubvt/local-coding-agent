@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from qai.workspace import SandboxError, Workspace
@@ -25,8 +27,17 @@ def test_resolve_rejects_escape(workspace):
 
 
 def test_resolve_rejects_absolute_outside(workspace):
+    # Use a genuinely absolute path for the running platform: on POSIX a
+    # Windows-style "C:/..." string is a *relative* path and legitimately
+    # resolves inside the root, so a hardcoded drive path would not raise.
     with pytest.raises(SandboxError):
-        workspace.resolve("C:/Windows/System32/drivers/etc/hosts")
+        workspace.resolve(os.path.abspath(os.sep))
+
+
+def test_resolve_rejects_sibling_directory(workspace):
+    sibling = workspace.root.parent / "elsewhere"
+    with pytest.raises(SandboxError):
+        workspace.resolve(sibling)
 
 
 def test_resolve_rejects_empty(workspace):
