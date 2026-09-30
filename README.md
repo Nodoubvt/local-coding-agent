@@ -1,12 +1,19 @@
 <div align="center">
 
-![CI](https://github.com/Nodoubvt/local-coding-agent/actions/workflows/ci.yml/badge.svg)
-![License: MIT](https://img.shields.io/badge/license-MIT-2563eb.svg)
-![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776ab.svg)
-![Model: Qwen2.5-Coder 1.5B](https://img.shields.io/badge/model-Qwen2.5--Coder--1.5B-f97316.svg)
-![Inference: local / offline](https://img.shields.io/badge/inference-100%25%20local-16a34a.svg)
-![No API key](https://img.shields.io/badge/API%20keys-none-16a34a.svg)
-![Stars](https://img.shields.io/github/stars/Nodoubvt/local-coding-agent?style=social)
+[![PyPI version](https://img.shields.io/pypi/v/qai-cli)](https://pypi.org/project/qai-cli/)
+[![Python versions](https://img.shields.io/pypi/pyversions/qai-cli)](https://pypi.org/project/qai-cli/)
+[![License: MIT](https://img.shields.io/pypi/l/qai-cli)](https://pypi.org/project/qai-cli/)
+[![Downloads](https://img.shields.io/pypi/dm/qai-cli)](https://pypi.org/project/qai-cli/)
+[![CI](https://github.com/Nodoubvt/local-coding-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Nodoubvt/local-coding-agent/actions/workflows/ci.yml)
+[![Stars](https://img.shields.io/github/stars/Nodoubvt/local-coding-agent?style=social)](https://github.com/Nodoubvt/local-coding-agent/stargazers)
+
+</div>
+
+<div align="center">
+
+### <code>uvx qai-cli</code>
+
+**on PyPI** · **[`qai-cli` on PyPI](https://pypi.org/project/qai-cli/)** · **no API key** · **MIT**
 
 </div>
 
@@ -33,6 +40,62 @@ ok  read_file
 ```
 
 ---
+
+## Install
+
+### Run it in one command, no virtualenv
+
+```bash
+uvx qai-cli
+```
+
+Prefer a permanent install? `uv tool install qai-cli`, or `pipx install qai-cli`,
+or plain `pip install qai-cli`. All give you the same `qai` command.
+
+**[`qai-cli` is on PyPI](https://pypi.org/project/qai-cli/)** — published from the
+`v*` tag via trusted publishing, no API tokens involved.
+
+> **One extra step for local inference.** Actual model running needs
+> `llama-cpp-python`, a compiled C++ extension, so it is not pulled in by
+> default. You have two options:
+>
+> **A. No C++ toolchain?** Take the prebuilt CPU wheel, then:
+> ```bash
+> uvx --with llama-cpp-python qai-cli
+> ```
+>
+> **B. Have a compiler?** Install the extra:
+> ```bash
+> pip install "qai-cli[local]"
+> ```
+>
+> Without it you still get the CLI, config, sandbox and tool layer — you just
+> need to point `--model` at a backend yourself. The first run downloads ~1.1 GB
+> of Q4_K_M weights and caches them.
+
+<details>
+<summary>Requirements &amp; from-source install</summary>
+
+- Python 3.10 or newer
+- ~2 GB free disk for weights, ~2 GB RAM at inference
+
+```bash
+git clone https://github.com/Nodoubvt/local-coding-agent
+cd local-coding-agent
+
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -e ".[local]"         # [local] adds llama-cpp-python
+```
+
+Inspect resolved settings, or fetch weights ahead of time:
+
+```bash
+qai --print-config
+python -c "from qai.config import load_settings; from qai.backend import ensure_model_file; print(ensure_model_file(load_settings()))"
+```
+
+</details>
 
 ## Why this exists
 
@@ -229,34 +292,60 @@ MIT — see [LICENSE](LICENSE).
 
 ---
 
-## Beyond the terminal
+## Beyond the terminal: Agentic Studio
+
+`qai` and **[Devhead Agentic Studio](https://dev-head.com/products/astudio.html)**
+are two different products from the same author, solving the same problem at
+different scales. This project is not a trial or a demo of the commercial one —
+it is the full, MIT-licensed tool, and it will stay that way.
+
+|  | `qai` (this repo) | Agentic Studio |
+| --- | --- | --- |
+| Price | Free, MIT | Commercial, perpetual license |
+| Interface | Terminal (Windows/macOS/Linux) | Windows desktop IDE |
+| Agents | One | Up to five, each with its own model and context budget |
+| Default model | Qwen2.5-Coder 1.5B, runs on CPU | Bring your own key, or a bundled local model |
+| Context | 32k, with trimming and auto-compaction | Per-model windows from 16k to 1M, with a context inspector |
+| Inspectability | Read all 1,700 lines | GUI, plus live payload inspection |
+| Best for | Auditing, scripting, small edits, CI | Long autonomous runs, full-stack and 3D work |
+
+**What Agentic Studio adds.** The same context-management ideas from
+[the section above](#how-the-context-optimizer-works), built up to multi-agent
+scale, plus a number of things a terminal agent deliberately leaves out:
+
+- **Five coordinated agents** — Executor, Planner, Collaborator, Supervisor and
+  Asset Clerk. Each slot is independently configurable with its own provider,
+  model and context budget, and notes pass between tiers without contaminating
+  each agent's window.
+- **A visible context engine** — inspect the exact payload sent to the model
+  every turn, token by token, with a live gauge for headroom and a heatmap of
+  what is pinned, bloated or still free.
+- **Embedded runtimes** — PHP 8.3 and MariaDB 11.7, an FTP/SFTP client, a web
+  server with hot reload and a PixiJS 2D engine, all inside the editor and all
+  exposed to the agent as callable tools.
+- **Visual and 3D authoring** — a snap-grid HTML page editor, and a vendored
+  PlayCanvas engine (WebGL2/WebGPU, offline) the agent can drive directly.
+- **Recovery** — workspace snapshots before and during runs, session restore
+  that preserves tree state and agent memory, and one-click rollback.
 
 <p align="center">
-  <img src="docs/images/vibe.png" alt="Agentic Studio in Vibe Mode: a multi-pane IDE with a VS-style code editor, a live tool-call log showing grep_files and execute_shell, an agent conversation panel, and L1-L4 context cache gauges along the bottom" width="100%">
+  <img src="docs/images/vibe.png" alt="Agentic Studio in Vibe Mode: a multi-pane IDE with a code editor, a live tool-call log, an agent conversation panel, and L1-L4 context cache gauges along the bottom" width="100%">
 </p>
 
-<p align="center"><em>Vibe Mode — the agent snapshots the workspace, then runs
-unattended with the sandbox still hard-caged. Note the live tool log and the
-L1–L4 context gauges along the bottom edge.</em></p>
+<p align="center"><em>Vibe Mode — the workspace is snapshotted first, then the
+agent runs unattended with the sandbox still hard-caged. The tool log and L1–L4
+context gauges run along the bottom edge.</em></p>
 
 <p align="center">
-  <img src="docs/images/ss-ctx1.png" alt="The Context window in Agentic Studio: a model picker, a 125k token slider with 16k through 1M presets, and below it the Token Context Heap heatmap colouring each cluster as free space, pinned, reading, writing, bloated or defragmented" width="100%">
+  <img src="docs/images/ss-ctx1.png" alt="The Context window: a model picker, a 125k token slider with 16k through 1M presets, and the Token Context Heap heatmap colouring each cluster as free space, pinned, reading, writing, bloated or defragmented" width="100%">
 </p>
 
-<p align="center"><em>The Context Engine — a per-model window from 16k to 1M,
-with the Token Context Heap showing exactly which clusters are pinned, bloating
-or still free.</em></p>
+<p align="center"><em>Per-model context windows from 16k to 1M, with the heap
+showing which clusters are pinned, bloating or still free.</em></p>
 
-`qai` is the terminal. If you want the graphical version of the same idea —
-**5 coordinated agents, an inspectable context engine, embedded PHP/MariaDB/WebGPU
-emulators and one-click rollback** — that is
-**[Devhead Agentic Studio](https://dev-head.com/products/astudio.html)**, a
-separate commercial product built by the same author.
+Agentic Studio is Windows-only for now, requires a free signup, and ships with a
+7-day demo before the perpetual license. If you want the graphical version, the
+[product page](https://dev-head.com/products/astudio.html) has the details.
 
-The two are deliberately different tools: `qai` is free, MIT, and 1,700 lines of
-Python you can audit today; Agentic Studio is a Windows desktop IDE. The CLI
-stays free and MIT-licensed either way — nothing here is a trial, and nothing
-here phones home.
-
-*(Screenshots above are from the author's own product page and remain the
-property of their respective owner.)*
+*Screenshots are from the author's product page and remain the property of their
+respective owner.*
